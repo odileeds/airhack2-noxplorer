@@ -25,7 +25,7 @@
 			'layers':[this.baseMaps['Greyscale']],
 			'scrollWheelZoom':true,
 			'center': (opts.center||[53.7924,-1.7539]),
-			'zoom': (opts.zoom||13)
+			'zoom': (opts.zoom||11)
 		});
 		
 		// Set event listener
