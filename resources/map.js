@@ -2,17 +2,19 @@
 	
 	function NOXplorer(opts){
 
-		var headers,baseMaps;
-		
+		console.info('NOXplorer',opts);
+
 		// If no options provided we'll create an empty placeholder
 		if(!opts) opts = {};
+		this.key = "Total_NOx_18";
+		this.opts = opts;
 		
 			
 		// Define some basemap tile options
-		if(opts.baseMaps) baseMaps = opts.baseMaps;
-		else baseMaps = {};
+		if(opts.baseMaps) this.baseMaps = opts.baseMaps;
+		else this.baseMaps = {};
 		
-		baseMaps['Greyscale'] = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+		this.baseMaps['Greyscale'] = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
 			attribution: 'Tiles: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
 			subdomains: 'abcd',
 			maxZoom: 19
@@ -20,14 +22,31 @@
 
 		// Define our Leaflet map attached to <div id="map-holder">
 		this.map = L.map('map-holder',{
-			'layers':[baseMaps['Greyscale']],
+			'layers':[this.baseMaps['Greyscale']],
 			'scrollWheelZoom':true,
 			'center': (opts.center||[53.7924,-1.7539]),
 			'zoom': (opts.zoom||13)
 		});
 		
-		var url = (opts.url || "data/30-nox-2018.csv");
+		// Set event listener
+		var el = document.getElementById('layers');
+		// Set the value to match the select drop-down
+		if(el.value) this.key = el.value;
+
+		var _obj = this;
+		el.addEventListener('change', function(e){
+			_obj.setKey(e.currentTarget.value);
+		});
 		
+		// Now get the data
+		this.getData((opts.url || "data/30-nox-2018.csv"));
+
+	}
+	
+	NOXplorer.prototype.getData = function(url){
+
+		console.info('getData',url);
+
 		fetch(url,{'method':'GET'}).then(response => {
 
 			headers = response.headers;
@@ -99,24 +118,26 @@
 				}
 			}
 
-			this.updateKey("Total_NOx_18");
-
+			// Now set the key to use for opacity and update
+			this.setKey(this.key);
 
 		}).catch(error => {
 
 			console.error('Failed to load '+url);
 
 		});
-
-
-		
+		return this;
 	}
 	
-	NOXplorer.prototype.updateKey = function(key){
+	
+	NOXplorer.prototype.setKey = function(key){
+		
+		console.info('setKey',key);
+
+		this.key = key;
 		
 		var i,e,n,op;
 
-console.log('updateKey',key,this.grid);
 		for(i = 0; i < this.grid.length; i++){
 						
 			op = (this.data[i][this.lookup[key]] - this.range[key].min)/(this.range[key].max - this.range[key].min);
