@@ -14,9 +14,14 @@
 		this.colour = new Colours();
 		this.colour.addScale('Red','rgb(255,255,255) 0%, rgb(214,3,3) 100%');
 		this.colour.addScale('Black','rgb(255,255,255) 0%, rgb(0,0,0) 100%');
+		// Reverse the colour order of existing scales
 		this.colour.addScale('Heat','rgb(255,255,255) 0%, rgb(255,255,128) 25%, rgb(255,128,0) 50%, rgb(128,0,0) 75%, rgb(0,0,0) 100%');
+		this.colour.addScale('Viridis','rgb(253,231,36) 0%, rgb(186,222,39) 10%, rgb(121,209,81) 20%, rgb(66,190,113) 30%, rgb(34,167,132) 40%, rgb(32,143,140) 50%, rgb(41,120,142) 60%, rgb(52,94,141) 70%, rgb(64,67,135) 80%, rgb(72,35,116) 90%, rgb(68,1,84) 100%');
+		this.colour.addScale('ODI','rgb(249,188,38) 0%, rgb(230,0,124) 50%, rgb(114,46,165) 100%');
+		this.colour.addScale('Plasma','rgb(239,248,33) 0%, rgb(252,204,37) 10%, rgb(252,166,53) 20%, rgb(241,130,76) 30%, rgb(224,100,97) 40%, rgb(202,70,120) 50%, rgb(176,42,143) 60%, rgb(143,13,163) 70%, rgb(106,0,167) 80%, rgb(64,3,156) 90%, rgb(12,7,134) 100%');
+		this.colour.addScale('Leodis','#ffffff 0%, #F9BC26 50%, #2254F4 100%');
+		this.colour.addScale('Longside','#addde6 0%, #801638 100%');
 
-			
 		// Define some basemap tile options
 		if(opts.baseMaps) this.baseMaps = opts.baseMaps;
 		else this.baseMaps = {};
