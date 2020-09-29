@@ -14,6 +14,8 @@
 		this.colour = new Colours();
 		this.colour.addScale('Red','rgb(255,255,255) 0%, rgb(214,3,3) 100%');
 		this.colour.addScale('Black','rgb(255,255,255) 0%, rgb(0,0,0) 100%');
+		this.colour.addScale('Heat','rgb(255,255,255) 0%, rgb(255,255,128) 25%, rgb(255,128,0) 50%, rgb(128,0,0) 75%, rgb(0,0,0) 100%');
+
 			
 		// Define some basemap tile options
 		if(opts.baseMaps) this.baseMaps = opts.baseMaps;
