@@ -15,6 +15,7 @@
 
 	<h1>Bradford NOX-plorer</h1>
 	
+	<label for="layers">NOX layer:</label>
 	<select id="layers">
 		<option value="Total_NOx_18">Total_NOx_18</option>
 		<option value="Motorway_in_18">Motorway_in_18</option>
@@ -39,8 +40,16 @@
 		<option value="Rural_18">Rural_18</option>
 	</select>
 
+	<label for="colours">Colour scale:</label>
+	<select id="colours">
+		<option value="Heat">Heat</option>
+		<option value="Plasma">Plasma</option>
+		<option value="Viridis">Viridis</option>
+	</select>
+
 	<div id="map-holder"></div>
 	
+	<div id="scalebar"></div>
 	<p>Here is a description of this.</p>
 
 </body>

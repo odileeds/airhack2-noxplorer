@@ -156,12 +156,31 @@ input, select {
 
 h1 { margin-bottom: 0.5em; }
 
+#map-holder,input,select,#scalebar .bar {
+	border: 1px solid #999;
+}
+
 #map-holder {
-	border: 2px solid red;
 	height: 450px;
 }
 
-
+#scalebar { margin-top: 0.5em; width: 100%; display: block; }
+#scalebar .bar {
+    height: 14px;
+	position: relative;
+	display: block;
+}
+#scalebar .range { height: 1.25em; display: block; line-height: 1.25em; }
+#scalebar .range .min {
+	float: left;
+	padding-left: 0.25em;
+	border-left: 1px solid #666666;
+}
+#scalebar .range .max {
+	float: right;
+	padding-right: 0.25em;
+	border-right: 1px solid #666666;
+}
 
 
 @media only screen and (max-width: 700px) {
