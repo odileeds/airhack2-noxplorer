@@ -126,6 +126,9 @@
 
 			// Remove the header line
 			header = this.data.shift();
+			
+			this.range.lat = {'min':90,'max':-90};
+			this.range.lon = {'min':180,'max':-180};
 
 			for(i = 0; i < this.data.length; i++){
 				
@@ -134,6 +137,11 @@
 
 				if(!isNaN(e) && !isNaN(n)){
 					latlon = NEtoLL([ e, n ]);
+					
+					this.range.lat.min = Math.min(this.range.lat.min,latlon[0]);
+					this.range.lat.max = Math.max(this.range.lat.max,latlon[0]);
+					this.range.lon.min = Math.min(this.range.lon.min,latlon[1]);
+					this.range.lon.max = Math.max(this.range.lon.max,latlon[1]);
 					
 					// Create a circle marker
 					this.grid.push(L.circle(latlon, {
@@ -147,6 +155,8 @@
 					this.grid[this.grid.length-1].addTo(this.map);
 				}
 			}
+			
+			this.map.fitBounds([[this.range.lat.min,this.range.lon.min],[this.range.lat.max,this.range.lon.max]])
 
 			// Now set the key to use for opacity and update
 			this.setKey(this.key);
