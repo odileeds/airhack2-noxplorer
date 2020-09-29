@@ -11,6 +11,9 @@
 		this.key = "Total_NOx_18";
 		this.scale = "Plasma";
 		this.opts = opts;
+		this.colour = new Colours();
+		this.colour.addScale('Red','rgb(255,255,255) 0%, rgb(214,3,3) 100%');
+		this.colour.addScale('Black','rgb(255,255,255) 0%, rgb(0,0,0) 100%');
 			
 		// Define some basemap tile options
 		if(opts.baseMaps) this.baseMaps = opts.baseMaps;
@@ -161,17 +164,16 @@
 		console.info('setColourScale',scale);
 
 		var el,col,i;
-		var colour = new Colours();
 
 		this.scale = scale;
 
 		// Update the scale bar
 		el = document.getElementById('scalebar');
-		el.innerHTML = '<div class="bar" style="background:linear-gradient(to right,'+colour.getColourScale(scale)+');"></div><div class="range"><span class="min">'+this.range[this.key].min+'</span><span class="max">'+this.range[this.key].max+'</span></div>';
+		el.innerHTML = '<div class="bar" style="background:linear-gradient(to right,'+this.colour.getColourScale(scale)+');"></div><div class="range"><span class="min">'+this.range[this.key].min+'</span><span class="max">'+this.range[this.key].max+'</span></div>';
 
 		// Update the fill colours
 		for(i = 0; i < this.grid.length; i++){
-			col = colour.getColourFromScale(scale,this.data[i][this.lookup[this.key]],this.range[this.key].min,this.range[this.key].max);
+			col = this.colour.getColourFromScale(scale,this.data[i][this.lookup[this.key]],this.range[this.key].min,this.range[this.key].max);
 			this.grid[i].setStyle({'fillColor': col});
 
 		}
