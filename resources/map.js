@@ -24,8 +24,8 @@
 		this.map = L.map('map-holder',{
 			'layers':[this.baseMaps['Greyscale']],
 			'scrollWheelZoom':true,
-			'center': (opts.center||[53.7924,-1.7539]),
-			'zoom': (opts.zoom||11)
+			'center': (opts.center||[53.8324,-1.7539]),
+			'zoom': (opts.zoom||10)
 		});
 		
 		// Set event listener
