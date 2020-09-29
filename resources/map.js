@@ -171,7 +171,6 @@
 
 		// Update the fill colours
 		for(i = 0; i < this.grid.length; i++){
-						
 			col = colour.getColourFromScale(scale,this.data[i][this.lookup[this.key]],this.range[this.key].min,this.range[this.key].max);
 			this.grid[i].setStyle({'fillColor': col});
 
@@ -190,8 +189,8 @@
 
 	root.NOXplorer = NOXplorer;
 
-	/* ============ */
-	/* Colours v0.3 */
+	/* ============== */
+	/* Colours v0.3.1 */
 	// Define colour routines
 	function Colour(c,n){
 		if(!c) return {};
@@ -339,7 +338,6 @@
 			if(typeof max!=="number") max = 1;
 			cs = scales[s].stops;
 			v2 = 100*(v-min)/(max-min);
-			
 			var match = -1;
 			if(v==max){
 				colour = 'rgba('+cs[cs.length-1].c.rgb[0]+', '+cs[cs.length-1].c.rgb[1]+', '+cs[cs.length-1].c.rgb[2]+', ' + cs[cs.length-1].c.alpha + ")";
@@ -350,7 +348,7 @@
 						if(v2 >= cs[c].v && v2 <= cs[c+1].v){
 							// On this colour stop
 							pc = 100*(v2 - cs[c].v)/(cs[c+1].v-cs[c].v);
-							if(v2 >= max) pc = 100;	// Don't go above colour range
+							if(pc > 100) pc = 100;	// Don't go above colour range
 							colour = this.getColourPercent(pc,cs[c].c,cs[c+1].c);
 							continue;
 						}
@@ -373,6 +371,8 @@
 		return [wgs84.latitude,wgs84.longitude];
 		
 	}
+	
+	root.Colours = Colours;
 
 
 })(window || this);
@@ -391,8 +391,6 @@ var app;
 // Check if the page is ready
 ready(function(){
 
-
 	app = new NOXplorer({});
-
 
 });
