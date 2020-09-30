@@ -48,6 +48,7 @@ ul, ol { margin-left: 1.5em; }
 /* Useful padding/sizing boxes */
 .holder { position: relative; width: 1080px; max-width: 100%; margin: auto; }
 .padded { padding: 1em; }
+.tallpadded { padding: 2em 1em; }
 .doublepadded { padding: 2em; }
 
 /* Define ODI colours */
@@ -150,8 +151,9 @@ input, select {
 	height: 2em;
 	margin-bottom: 0.5em;
 }
+header { padding: 1em; }
 
-h1 { margin-bottom: 0.5em; line-height: 1.5em; }
+h1 { margin-bottom: 0.125em; line-height: 1.5em; }
 
 #map-holder,input,select,.scalebar .bar {
 	border: 1px solid #999;
@@ -202,6 +204,8 @@ form input[type=text] { padding: 0 0.25em; width: 200px; }
 .typeahead-results li.selected > a { background-color: #444; color: white; }
 
 .row { display: inline-block; margin-right: 1em; }
+
+footer a, footer a:visited { color: inherit; }
 
 @media only screen and (max-width: 700px) {
 	.row { display: block; margin-right: 0; }
