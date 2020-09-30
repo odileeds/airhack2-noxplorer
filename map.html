@@ -52,10 +52,17 @@
 		<option value="Red">Red</option>
 		<option value="Viridis">Viridis</option>
 	</select>
+	
+	<label for="interpolation">Interpolation:</label>
+	<select id="interpolation">
+		<option value="nearest">Nearest grid cell</option>
+		<option value="mean">Mean of neighbours</option>
+		<option value="gaussian">Smoothed interpolation</option>
+	</select>
 
 	<div id="map-holder"></div>
 	
-	<p>Here is a description of this.</p>
+	<div id="output"></div>
 
 </body>
 </html>

@@ -82,20 +82,41 @@
 		el.addEventListener('change', function(e){
 			_obj.setKey(e.currentTarget.value);
 		});
+		datakeys = el.querySelectorAll('option');
+		this.keys = new Array(datakeys.length);
+		for(i = 0; i < datakeys.length; i++) this.keys[i] = datakeys[i].getAttribute('value');
 		el = document.getElementById('colours');
 		// Set the value to match the select drop-down
 		if(el.value) this.scale = el.value;
 		el.addEventListener('change', function(e){
 			_obj.setColourScale(e.currentTarget.value);
 		});
+		el = document.getElementById('interpolation');
+		// Set the value to match the select drop-down
+		if(el.value) this.interpolation = el.value;
+		el.addEventListener('change', function(e){
+			_obj.setInterpolation(e.currentTarget.value);
+		});
 		
+		this.on('move',function(e){
+			this.updateCrosshair(this.map.getCenter());
+		});
 		this.on('moveend',function(e){
-			console.log('moveend',this,e,this.map.getCenter());
+			this.updateCrosshair(this.map.getCenter());
+			this.calculate();
+		});
+		this.on('zoom',function(e){
+			this.updateCrosshair(this.map.getCenter());
+		});
+		this.on('zoomend',function(e){
+			this.updateCrosshair(this.map.getCenter());
 		});
 		
 		
+		this.map.on("move", function(){ _obj.trigger('move'); });
 		this.map.on("moveend", function(){ _obj.trigger('moveend'); });
-		this.map.on("zoomend", function(){ _obj.trigger('moveend'); });
+		this.map.on("zoom", function(){ _obj.trigger('zoom'); });
+		this.map.on("zoomend", function(){ _obj.trigger('zoomend'); });
 		
 		// Now get the data
 		this.getData((opts.url || "data/30-nox-2018.csv"));
@@ -135,7 +156,71 @@
 		}
 		if(o.length > 0) return o;
 	}
+		
+	NOXplorer.prototype.updateCrosshair = function(centre){
+		if(!centre) centre = this.map.getCenter();
+		var crosshairIcon = L.icon({'iconUrl': 'resources/crosshair.svg','iconSize': [20, 20], 'iconAnchor': [10, 10] });
+		if(!this.point){
+			this.point = new L.marker(centre,{icon: crosshairIcon, clickable:false});
+			this.point.addTo(this.map);
+		}else{
+			this.point.setLatLng(centre);
+		}
+		return this;
+	}
+	
+	NOXplorer.prototype.calculate = function(point,method){
+		var i,d,near,w,values,k,j,el,keys,table;
+		if(!point) point = this.map.getCenter();
+		if(!method) method = this.interpolation;
+		d = [];
+		w = [1];
+		el = document.getElementById('output');
+		// Find the distance (in metres) to each grid point
+		for(i = 0; i < this.grid.length; i++) d[i] = this.grid[i]._latlng.distanceTo(point);
+		// Get the indices of the nearest points
+		near = sortIndices(d);
+		
+		if(d[near[0]] > 1000){
+			el.innerHTML = "Too far away from data!";
+			return this;
+		}
 
+		if(method == "mean"){
+			w = [1,1,1,1];
+		}else if(method == "gaussian"){
+			w = [1,1,1,1,1,1,1,1];
+			for(i = 0; i < w.length; i++){
+				w[i] = Math.exp(-Math.pow(d[near[i]],2)/(2*Math.pow(500,2)));
+			}
+		}
+
+		values = {};
+		for(j = 0; j < this.keys.length; j++){
+			k = this.keys[j];
+			if(!values[k]) values[k] = {'v':0,'t':0};
+			for(i = 0; i < w.length; i++){
+				values[k].v += w[i] * this.data[near[i]][this.lookup[k]];
+				values[k].t += w[i];
+			}
+			values[k].v /= values[k].t;
+		}
+
+		
+
+		keys = [];
+		table = '<table>';
+		for(j = 0; j < this.keys.length; j++){
+			k = this.keys[j];
+			// Get colour
+			col = new Colour(this.colour.getColourFromScale(this.scale,values[k].v,this.range[k].min,this.range[k].max));
+			table += '<tr><td>'+k+'</td><td style="background-color:'+col.hex+';color:'+col.text+'"><span>'+values[k].v.toFixed(3)+'</span></td></tr>';
+		}
+		table += '</table>';
+		el.innerHTML = table;
+
+		return this;
+	}
 	NOXplorer.prototype.getData = function(url){
 
 		console.info('getData',url);
@@ -247,8 +332,15 @@
 		for(i = 0; i < this.grid.length; i++){
 			col = this.colour.getColourFromScale(scale,this.data[i][this.lookup[this.key]],this.range[this.key].min,this.range[this.key].max);
 			this.grid[i].setStyle({'fillColor': col});
-
 		}
+		
+		this.calculate();
+		return this;
+	}
+	
+	NOXplorer.prototype.setInterpolation = function(i){
+		this.interpolation = i;
+		this.calculate();
 		return this;
 	}
 
@@ -264,7 +356,7 @@
 	root.NOXplorer = NOXplorer;
 
 	/* ============== */
-	/* Colours v0.3.1 */
+	/* Colours v0.3.2 */
 	// Define colour routines
 	function Colour(c,n){
 		if(!c) return {};
@@ -412,6 +504,9 @@
 			cs = scales[s].stops;
 			v2 = 100*(v-min)/(max-min);
 			var match = -1;
+			if(max-min==0){
+				return cs[0].c.toString();
+			}
 			if(v==max){
 				colour = 'rgba('+cs[cs.length-1].c.rgb[0]+', '+cs[cs.length-1].c.rgb[1]+', '+cs[cs.length-1].c.rgb[2]+', ' + cs[cs.length-1].c.alpha + ")";
 			}else{
@@ -453,7 +548,15 @@
 			}
 			return destination;
 		} : Object.extend;
-	
+
+
+	function sortIndices(toSort){
+		var len = toSort.length;
+		var indices = new Array(len);
+		for(var i = 0; i < len; ++i) indices[i] = i;
+		return indices.sort(function (a, b){ return toSort[a] < toSort[b] ? -1 : toSort[a] > toSort[b] ? 1 : 0; });
+	}
+
 	root.Colours = Colours;
 
 
