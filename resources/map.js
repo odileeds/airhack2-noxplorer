@@ -98,6 +98,7 @@
 			'process': function(d){
 				this.el.value = d.Postcode;
 				_obj.map.panTo(L.latLng(d.Lat, d.Lon));
+				_obj.map.setZoom(14);
 			}
 		});
 		this.typeahead.files = {};
@@ -130,6 +131,7 @@
 					}
 					this.addItems(data);
 
+					// Trigger keyup event
 					var event = document.createEvent('HTMLEvents');
 					event.initEvent('keyup', true, false);
 					this.el.dispatchEvent(event);
