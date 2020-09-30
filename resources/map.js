@@ -92,6 +92,7 @@
 				var p2 = str.replace(/ /g,"");
 				// If the name starts with the string add 3
 				if(p1.toUpperCase().indexOf(p2.toUpperCase())==0) r += 3;
+				if(d.Postcode.toUpperCase().indexOf(str.toUpperCase())==0) r += 3;
 				return r;
 			},
 			'process': function(d){
@@ -103,9 +104,11 @@
 		// Attach a callback to the 'change' event. This gets called each time the user enters/deletes a character.
 		this.typeahead.on('change',{'this':this.typeahead},function(e){
 			
-			var f = this.el.value.replace(/^([A-Z]{1,2}[0-9]{1,})\s?.*$/,function(m,p1){ return p1; });
+			var f = this.el.value.replace(/^([A-Z]{1,2}[0-9]+)\s?.*$/,function(m,p1){ return p1; });
+
 			if(f.length >=3 && !this.files[f]){
 				this.files[f] = [];
+				console.info('Getting '+f+'.csv');
 				fetch("postcodes/"+f+".csv",{'method':'GET'}).then(response => {
 
 					if(!response.ok) throw new Error('Request Failed'); 
