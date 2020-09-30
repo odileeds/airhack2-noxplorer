@@ -229,7 +229,7 @@
 		
 	NOXplorer.prototype.updateCrosshair = function(centre){
 		if(!centre) centre = this.map.getCenter();
-		var crosshairIcon = L.icon({'iconUrl': 'resources/crosshair.svg','iconSize': [20, 20], 'iconAnchor': [10, 10] });
+		var crosshairIcon = L.icon({'iconUrl': 'resources/crosshair.svg','iconSize': [32, 32], 'iconAnchor': [10, 10] });
 		if(!this.point){
 			this.point = new L.marker(centre,{icon: crosshairIcon, clickable:false});
 			this.point.addTo(this.map);
