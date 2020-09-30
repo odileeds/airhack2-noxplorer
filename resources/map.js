@@ -57,7 +57,7 @@
 		// Define our Leaflet map attached to <div id="map-holder">
 		this.map = L.map('map-holder',{
 			'layers':[this.baseMaps['cartodb-greyscale']],
-			'scrollWheelZoom':true,
+			'scrollWheelZoom':false,
 			'center': (opts.center||[53.8324,-1.7539]),
 			'zoom': (opts.zoom||10)
 		});
