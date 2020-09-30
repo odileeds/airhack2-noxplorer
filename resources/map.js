@@ -84,7 +84,7 @@
 		});
 		datakeys = el.querySelectorAll('option');
 		this.keys = new Array(datakeys.length);
-		for(i = 0; i < datakeys.length; i++) this.keys[i] = datakeys[i].getAttribute('value');
+		for(i = 0; i < datakeys.length; i++) this.keys[i] = {'value':datakeys[i].getAttribute('value'),'label':datakeys[i].innerHTML};
 		el = document.getElementById('colours');
 		// Set the value to match the select drop-down
 		if(el.value) this.scale = el.value;
@@ -197,7 +197,7 @@
 
 		values = {};
 		for(j = 0; j < this.keys.length; j++){
-			k = this.keys[j];
+			k = this.keys[j].value;
 			if(!values[k]) values[k] = {'v':0,'t':0};
 			for(i = 0; i < w.length; i++){
 				values[k].v += w[i] * this.data[near[i]][this.lookup[k]];
@@ -211,10 +211,10 @@
 		keys = [];
 		table = '<table>';
 		for(j = 0; j < this.keys.length; j++){
-			k = this.keys[j];
+			k = this.keys[j].value;
 			// Get colour
 			col = new Colour(this.colour.getColourFromScale(this.scale,values[k].v,this.range[k].min,this.range[k].max));
-			table += '<tr><td>'+k+'</td><td style="background-color:'+col.hex+';color:'+col.text+'"><span>'+values[k].v.toFixed(3)+'</span></td></tr>';
+			table += '<tr><td>'+this.keys[j].label+'</td><td style="background-color:'+col.hex+';color:'+col.text+'"><span>'+values[k].v.toFixed(3)+'</span></td></tr>';
 		}
 		table += '</table>';
 		el.innerHTML = table;
