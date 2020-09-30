@@ -76,6 +76,15 @@
 		};
 		this.scalebar.addTo(this.map);
 
+		// Add scalebar control
+		this.info = L.control({'position':'bottomleft'});
+		this.info.onAdd = function(map){
+			this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+			this._div.innerHTML = "Info";
+			return this._div;
+		};
+		this.info.addTo(this.map);
+
 		// Make postcode search
 		this.typeahead = TypeAhead.init('#typeahead',{
 			'max': 8,
@@ -143,8 +152,6 @@
 				});
 			}
 		});
-
-
 
 
 		// Set event listeners
@@ -255,6 +262,7 @@
 		
 		if(d[near[0]] > 1000){
 			el.innerHTML = "Too far away from data!";
+			document.querySelector('.info').innerHTML = "";
 			return this;
 		}
 
@@ -278,8 +286,6 @@
 			values[k].v /= values[k].t;
 		}
 
-		
-
 		keys = [];
 		k = 0;
 		for(j = 0; j < this.keys.length; j++){
@@ -287,8 +293,8 @@
 		}
 		// Get colour
 		col = new Colour(this.colour.getColourFromScale(this.scale,values[this.key].v,this.range[this.key].min,this.range[this.key].max));
-		table = '<p>Showing '+this.keys[k].label+' at <span class="coords">'+point.lat.toFixed(5)+','+point.lng.toFixed(5)+'</span>: <span style="background-color:'+col.hex+';color:'+col.text+'" class="value">'+values[this.key].v.toFixed(3)+'</span></p>';
-		table += '<p>A summary of all the NOx contributions:</p>'
+		document.querySelector('.info').innerHTML = ''+this.keys[k].label+' at <span class="coords">'+point.lat.toFixed(5)+','+point.lng.toFixed(5)+'</span>: <span style="background-color:'+col.hex+';color:'+col.text+'" class="value">'+values[this.key].v.toFixed(3)+'</span>';
+		table = '<p>A summary of all the NOx contributions:</p>'
 		table += '<table>';
 		for(j = 0; j < this.keys.length; j++){
 			k = this.keys[j].value;
@@ -297,6 +303,7 @@
 			table += '<tr><td>'+this.keys[j].label+'</td><td style="background-color:'+col.hex+';color:'+col.text+'"><span class="value">'+values[k].v.toFixed(3)+'</span></td></tr>';
 		}
 		table += '</table>';
+		
 		el.innerHTML = table;
 
 		return this;
