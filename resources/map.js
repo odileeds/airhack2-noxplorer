@@ -62,6 +62,8 @@
 			'zoom': (opts.zoom||10)
 		});
 
+
+		// Add scalebar control
 		this.scalebar = L.control();
 		this.scalebar.onAdd = function(map){
 			this._div = L.DomUtil.create('div', 'scalebar'); // create a div with a class "info"
@@ -74,8 +76,73 @@
 		};
 		this.scalebar.addTo(this.map);
 
-		// Set event listeners
+		// Make postcode search
+		this.typeahead = TypeAhead.init('#typeahead',{
+			'max': 8,
+			'items': [],
+			'render': function(d){
+				// Render the drop down list item for each airport.
+				// This can be HTML. It will be wrapped in <a>
+				return d.Postcode;
+			},
+			'rank': function(d,str){
+				// Calculate a weighting
+				var r = 0;
+				var p1 = d.Postcode.replace(/ /g,"");
+				var p2 = str.replace(/ /g,"");
+				// If the name starts with the string add 3
+				if(p1.toUpperCase().indexOf(p2.toUpperCase())==0) r += 3;
+				return r;
+			},
+			'process': function(d){
+				this.el.value = d.Postcode;
+				_obj.map.panTo(L.latLng(d.Lat, d.Lon));
+			}
+		});
+		this.typeahead.files = {};
+		// Attach a callback to the 'change' event. This gets called each time the user enters/deletes a character.
+		this.typeahead.on('change',{'this':this.typeahead},function(e){
+			
+			var f = this.el.value.replace(/^([A-Z]{1,2}[0-9]{1,})\s?.*$/,function(m,p1){ return p1; });
+			if(f.length >=3 && !this.files[f]){
+				this.files[f] = [];
+				fetch("postcodes/"+f+".csv",{'method':'GET'}).then(response => {
 
+					if(!response.ok) throw new Error('Request Failed'); 
+					return response.text();
+
+				}).then(d => {
+
+					d = d.split(/[\n\r]+/);
+					data = new Array(d.length-1);
+					this.files[f] = data;
+					for(var l = 0; l < d.length; l++){
+						cols = d[l].split(/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/);
+						if(l == 0) header = cols;
+						else{
+							datum = {};
+							for(var c = 0; c < cols.length; c++) datum[header[c]] = cols[c].replace(/(^\"|\"$)/g,"");
+							data[l-1] = datum;
+						}
+					}
+					this.addItems(data);
+
+					var event = document.createEvent('HTMLEvents');
+					event.initEvent('keyup', true, false);
+					this.el.dispatchEvent(event);
+
+				}).catch(error => {
+
+					console.error('Failed to load '+f);
+
+				});
+			}
+		});
+
+
+
+
+		// Set event listeners
 		el = document.getElementById('layers');
 		// Set the value to match the select drop-down
 		if(el.value) this.key = el.value;
@@ -216,7 +283,7 @@
 		// Get colour
 		col = new Colour(this.colour.getColourFromScale(this.scale,values[this.key].v,this.range[this.key].min,this.range[this.key].max));
 		table = '<p>Showing '+this.keys[k].label+' at <span class="coords">'+point.lat.toFixed(5)+','+point.lng.toFixed(5)+'</span>: <span style="background-color:'+col.hex+';color:'+col.text+'" class="value">'+values[this.key].v.toFixed(3)+'</span></p>';
-		table += '<p>A summary of all the NOX values:</p>'
+		table += '<p>A summary of all the NOx contributions:</p>'
 		table += '<table>';
 		for(j = 0; j < this.keys.length; j++){
 			k = this.keys[j].value;
@@ -549,14 +616,7 @@
 	}
 
 	// Extend objects
-	extendObject = (typeof Object.extend === 'undefined') ?
-		function(destination, source) {
-			for (var property in source) {
-				if (source.hasOwnProperty(property)) destination[property] = source[property];
-			}
-			return destination;
-		} : Object.extend;
-
+	extendObject = (typeof Object.extend === 'undefined') ? function(destination, source){ for(var property in source){ if (source.hasOwnProperty(property)) destination[property] = source[property]; } return destination; } : Object.extend;
 
 	function sortIndices(toSort){
 		var len = toSort.length;
@@ -566,7 +626,6 @@
 	}
 
 	root.Colours = Colours;
-
 
 })(window || this);
 

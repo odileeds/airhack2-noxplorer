@@ -183,12 +183,11 @@ h1 { margin-bottom: 0.5em; }
 }
 
 
-.leaflet-top.leaflet-right .leaflet-control { 
+.leaflet-top.leaflet-right .leaflet-control, .leaflet-bottom.leaflet-left .leaflet-control { 
 	margin: 0.5em;
 }
 
 #output {
-	margin-top: 2em;
 	margin-bottom: 2em;
 }
 
@@ -197,6 +196,14 @@ table td { border: 1px solid #999; padding: 0.25em; }
 .value { padding: 0.25em; display: inline-block; }
 td.value { text-align: center; display: block; }
 .coords { font-style: italic; }
+
+form { margin: 1em 0; }
+form input[type=text] { padding: 0 0.25em; width: 200px; }
+.typeahead-results { width: 200px; }
+.typeahead-results ol { list-style: none; margin: 0px; padding: 0px;  }
+.typeahead-results li > a { padding: 0.25em 0.5em; background: #efefef; text-decoration: none; display: block; color: inherit; }
+.typeahead-results li.selected > a { background-color: #444; color: white; }
+
 
 @media only screen and (max-width: 700px) {
 	body { padding: 1em; }

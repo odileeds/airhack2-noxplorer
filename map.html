@@ -9,6 +9,7 @@
 	<script type="text/javascript" src="resources/leaflet.js"></script>
 	<script type="text/javascript" src="resources/leaflet.markercluster.js"></script>
 	<script type="text/javascript" src="resources/geotools2.js"></script>
+	<script type="text/javascript" src="resources/typeahead.js"></script>
 	<script type="text/javascript" src="resources/map.js"></script>
 </head>
 <body class="b6-bg">
@@ -62,6 +63,8 @@
 
 	<div id="map-holder"></div>
 	
+	<form id="form"><label for="typeahead">Search for a postcode:</label><input type="text" id="typeahead" value="" placeholder="e.g. BD1 1AA"><div class="results"><span id="typeahead-results"></span></div></form>
+
 	<div id="output"></div>
 
 </body>
