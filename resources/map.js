@@ -11,6 +11,7 @@
 		this.key = "Total_NOx_18";
 		this.scale = "Plasma";
 		this.opts = opts;
+		this.events = {};
 		this.colour = new Colours();
 		this.colour.addScale('Red','rgb(255,255,255) 0%, rgb(214,3,3) 100%');
 		this.colour.addScale('Black','rgb(255,255,255) 0%, rgb(0,0,0) 100%');
@@ -21,6 +22,9 @@
 		this.colour.addScale('Plasma','rgb(239,248,33) 0%, rgb(252,204,37) 10%, rgb(252,166,53) 20%, rgb(241,130,76) 30%, rgb(224,100,97) 40%, rgb(202,70,120) 50%, rgb(176,42,143) 60%, rgb(143,13,163) 70%, rgb(106,0,167) 80%, rgb(64,3,156) 90%, rgb(12,7,134) 100%');
 		this.colour.addScale('Leodis','#ffffff 0%, #F9BC26 50%, #2254F4 100%');
 		this.colour.addScale('Longside','#addde6 0%, #801638 100%');
+
+		_obj = this;
+		
 
 		// Define some basemap tile options
 		if(opts.baseMaps) this.baseMaps = opts.baseMaps;
@@ -58,8 +62,18 @@
 			'zoom': (opts.zoom||10)
 		});
 
-		_obj = this;
-		
+		this.scalebar = L.control();
+		this.scalebar.onAdd = function(map){
+			this._div = L.DomUtil.create('div', 'scalebar'); // create a div with a class "info"
+			this.update();
+			return this._div;
+		};
+		// method that we will use to update the control based on feature properties passed
+		this.scalebar.update = function(props){
+			this._div.innerHTML = '<div class="bar" style="background:linear-gradient(to right,'+_obj.colour.getColourScale(_obj.scale)+');"></div><div class="range"><span class="min">'+(_obj.range ? _obj.range[_obj.key].min.toFixed(3) : '')+'</span><span class="max">'+(_obj.range ? _obj.range[_obj.key].max.toFixed(3) : '')+'</span></div>';
+		};
+		this.scalebar.addTo(this.map);
+
 		// Set event listeners
 
 		el = document.getElementById('layers');
@@ -75,11 +89,53 @@
 			_obj.setColourScale(e.currentTarget.value);
 		});
 		
+		this.on('moveend',function(e){
+			console.log('moveend',this,e,this.map.getCenter());
+		});
+		
+		
+		this.map.on("moveend", function(){ _obj.trigger('moveend'); });
+		this.map.on("zoomend", function(){ _obj.trigger('moveend'); });
+		
 		// Now get the data
 		this.getData((opts.url || "data/30-nox-2018.csv"));
 
 	}
-	
+
+
+	// Attach a handler to an event for the OSMEditor object in a style similar to that used by jQuery
+	//   .on(eventType[,eventData],handler(eventObject));
+	//   .on("authenticate",function(e){ console.log(e); });
+	//   .on("authenticate",{me:this},function(e){ console.log(e.data.me); });
+	NOXplorer.prototype.on = function(ev,e,fn){
+		if(typeof ev!="string") return this;
+		if(typeof fn==="undefined"){
+			fn = e;
+			e = {};
+		}else{
+			e = {data:e}
+		}
+		if(typeof e!="object" || typeof fn!="function") return this;
+		if(this.events[ev]) this.events[ev].push({e:e,fn:fn});
+		else this.events[ev] = [{e:e,fn:fn}];
+		return this;
+	}
+
+	// Trigger a defined event with arguments. This is for internal-use to be 
+	// sure to include the correct arguments for a particular event
+	NOXplorer.prototype.trigger = function(ev,args){
+		if(typeof ev != "string") return;
+		if(typeof args != "object") args = {};
+		var o = [];
+		if(typeof this.events[ev]=="object"){
+			for(var i = 0 ; i < this.events[ev].length ; i++){
+				var e = extendObject(this.events[ev][i].e,args);
+				if(typeof this.events[ev][i].fn == "function") o.push(this.events[ev][i].fn.call(e['this']||this,e))
+			}
+		}
+		if(o.length > 0) return o;
+	}
+
 	NOXplorer.prototype.getData = function(url){
 
 		console.info('getData',url);
@@ -185,8 +241,7 @@
 		this.scale = scale;
 
 		// Update the scale bar
-		el = document.getElementById('scalebar');
-		el.innerHTML = '<div class="bar" style="background:linear-gradient(to right,'+this.colour.getColourScale(scale)+');"></div><div class="range"><span class="min">'+this.range[this.key].min+'</span><span class="max">'+this.range[this.key].max+'</span></div>';
+		this.scalebar.update(this);
 
 		// Update the fill colours
 		for(i = 0; i < this.grid.length; i++){
@@ -389,6 +444,15 @@
 		return [wgs84.latitude,wgs84.longitude];
 		
 	}
+
+	// Extend objects
+	extendObject = (typeof Object.extend === 'undefined') ?
+		function(destination, source) {
+			for (var property in source) {
+				if (source.hasOwnProperty(property)) destination[property] = source[property];
+			}
+			return destination;
+		} : Object.extend;
 	
 	root.Colours = Colours;
 
