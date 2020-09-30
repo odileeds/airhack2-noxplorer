@@ -63,8 +63,17 @@
 		});
 
 
+		// Add info control
+		this.info = L.control({'position':'topright'});
+		this.info.onAdd = function(map){
+			this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+			this._div.innerHTML = "Info";
+			return this._div;
+		};
+		this.info.addTo(this.map);
+
 		// Add scalebar control
-		this.scalebar = L.control();
+		this.scalebar = L.control({'position':'topright'});
 		this.scalebar.onAdd = function(map){
 			this._div = L.DomUtil.create('div', 'scalebar'); // create a div with a class "info"
 			this.update();
@@ -75,15 +84,6 @@
 			this._div.innerHTML = '<div class="bar" style="background:linear-gradient(to right,'+_obj.colour.getColourScale(_obj.scale)+');"></div><div class="range"><span class="min">'+(_obj.range ? _obj.range[_obj.key].min.toFixed(3) : '')+'</span><span class="max">'+(_obj.range ? _obj.range[_obj.key].max.toFixed(3) : '')+'</span></div>';
 		};
 		this.scalebar.addTo(this.map);
-
-		// Add scalebar control
-		this.info = L.control({'position':'bottomleft'});
-		this.info.onAdd = function(map){
-			this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
-			this._div.innerHTML = "Info";
-			return this._div;
-		};
-		this.info.addTo(this.map);
 
 		// Make postcode search
 		this.typeahead = TypeAhead.init('#typeahead',{
