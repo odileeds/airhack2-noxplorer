@@ -164,7 +164,7 @@ h1 { margin-bottom: 0.125em; line-height: 1.5em; }
 	border-right: 0;
 }
 
-.scalebar { margin-top: 0.5em; min-width: 150px; display: block; }
+.scalebar { margin-top: 0.5em; min-width: 150px; width: 100%; display: block; }
 .scalebar .bar {
     height: 14px;
 	position: relative;
@@ -181,12 +181,12 @@ h1 { margin-bottom: 0.125em; line-height: 1.5em; }
 	padding-right: 0.25em;
 	border-right: 1px solid #666666;
 }
-
-.leaflet-control.info{
-	margin: 0.5em 0.5em 0 0;
+.leaflet-top.leaflet-right {
+	margin: 0.5em;
 }
-.leaflet-control.scalebar { 
-	margin: 0.5em 0.5em 0.5em 0;
+.leaflet-right .leaflet-control { margin: 0; }
+.leaflet-control.info {
+	margin-bottom: 0.25em;
 }
 
 #output {
