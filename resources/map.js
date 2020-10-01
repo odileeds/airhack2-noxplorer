@@ -120,36 +120,31 @@
 			if(f.length >=3 && !this.files[f]){
 				this.files[f] = [];
 				console.info('Getting '+f+'.csv');
-				fetch("postcodes/"+f+".csv",{'method':'GET'}).then(response => {
-
-					if(!response.ok) throw new Error('Request Failed'); 
-					return response.text();
-
-				}).then(d => {
-
-					d = d.split(/[\n\r]+/);
-					data = new Array(d.length-1);
-					this.files[f] = data;
-					for(var l = 0; l < d.length; l++){
-						cols = d[l].split(/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/);
-						if(l == 0) header = cols;
-						else{
-							datum = {};
-							for(var c = 0; c < cols.length; c++) datum[header[c]] = cols[c].replace(/(^\"|\"$)/g,"");
-							data[l-1] = datum;
+				ajax("postcodes/"+f+".csv",{
+					"this": this,
+					"success": function(d){
+						d = d.split(/[\n\r]+/);
+						data = new Array(d.length-1);
+						this.files[f] = data;
+						for(var l = 0; l < d.length; l++){
+							cols = d[l].split(/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/);
+							if(l == 0) header = cols;
+							else{
+								datum = {};
+								for(var c = 0; c < cols.length; c++) datum[header[c]] = cols[c].replace(/(^\"|\"$)/g,"");
+								data[l-1] = datum;
+							}
 						}
+						this.addItems(data);
+
+						// Trigger keyup event
+						var event = document.createEvent('HTMLEvents');
+						event.initEvent('keyup', true, false);
+						this.el.dispatchEvent(event);
+					},
+					"error": function(e){
+						console.error('Request for '+url+' failed',e);
 					}
-					this.addItems(data);
-
-					// Trigger keyup event
-					var event = document.createEvent('HTMLEvents');
-					event.initEvent('keyup', true, false);
-					this.el.dispatchEvent(event);
-
-				}).catch(error => {
-
-					console.error('Failed to load '+f);
-
 				});
 			}
 		});
@@ -321,96 +316,94 @@
 
 		console.info('getData',url);
 
-		fetch(url,{'method':'GET'}).then(response => {
+		ajax(url,{
+			"this": this,
+			"success": function(text){
+				console.log('data',d);
 
-			headers = response.headers;
-			if(!response.ok) throw new Error('Request Failed'); 
-			return response.text();
-
-		}).then(text => {
-
-			var i,line,j,latlon,e,n,colname;
-			this.lookup = {};
-			this.grid = [];
-			this.data = [];
-			this.range = {};
-			
-			// Split the text by newline characters into an array of lines
-			this.data = text.split(/[\n\r]/);
-
-			// Loop over the lines
-			for(i = 0; i < this.data.length; i++){
+				var i,line,j,latlon,e,n,colname;
+				this.lookup = {};
+				this.grid = [];
+				this.data = [];
+				this.range = {};
 				
-				// Split the line by commas (because we know this is a simple CSV)
-				this.data[i] = this.data[i].split(/\,/);
-				
-				// If it is the header row we'll make a map of header column name to column number
-				if(i == 0){
-					// Loop over the columns
-					for(j = 0; j < this.data[i].length; j++) this.lookup[this.data[i][j]] = j;
+				// Split the text by newline characters into an array of lines
+				this.data = text.split(/[\n\r]/);
 
-				}else{
+				// Loop over the lines
+				for(i = 0; i < this.data.length; i++){
+					
+					// Split the line by commas (because we know this is a simple CSV)
+					this.data[i] = this.data[i].split(/\,/);
+					
+					// If it is the header row we'll make a map of header column name to column number
+					if(i == 0){
+						// Loop over the columns
+						for(j = 0; j < this.data[i].length; j++) this.lookup[this.data[i][j]] = j;
 
-					// Calculate the ranges
-					for(j = 0; j < this.data[i].length; j++){
-						colname = this.data[0][j];
-						// If this seems to be a number we convert it properly into one
-						if(typeof parseFloat(this.data[i][j])=="number"){
-							this.data[i][j] = parseFloat(this.data[i][j]);
+					}else{
+
+						// Calculate the ranges
+						for(j = 0; j < this.data[i].length; j++){
+							colname = this.data[0][j];
+							// If this seems to be a number we convert it properly into one
+							if(typeof parseFloat(this.data[i][j])=="number"){
+								this.data[i][j] = parseFloat(this.data[i][j]);
+							}
+
+							if(!this.range[colname]) this.range[colname] = {'min':1e100,'max':-1e100};
+							this.range[colname].min = Math.min(this.range[colname].min,this.data[i][j]);
+							this.range[colname].max = Math.max(this.range[colname].max,this.data[i][j]);
 						}
 
-						if(!this.range[colname]) this.range[colname] = {'min':1e100,'max':-1e100};
-						this.range[colname].min = Math.min(this.range[colname].min,this.data[i][j]);
-						this.range[colname].max = Math.max(this.range[colname].max,this.data[i][j]);
 					}
 
 				}
 
-			}
-
-			// Remove the header line
-			header = this.data.shift();
-			
-			this.range.lat = {'min':90,'max':-90};
-			this.range.lon = {'min':180,'max':-180};
-
-			for(i = 0; i < this.data.length; i++){
+				// Remove the header line
+				header = this.data.shift();
 				
-				e = this.data[i][this.lookup['x']];
-				n = this.data[i][this.lookup['y']];
+				this.range.lat = {'min':90,'max':-90};
+				this.range.lon = {'min':180,'max':-180};
 
-				if(!isNaN(e) && !isNaN(n)){
-					latlon = NEtoLL([ e, n ]);
+				for(i = 0; i < this.data.length; i++){
 					
-					this.range.lat.min = Math.min(this.range.lat.min,latlon[0]);
-					this.range.lat.max = Math.max(this.range.lat.max,latlon[0]);
-					this.range.lon.min = Math.min(this.range.lon.min,latlon[1]);
-					this.range.lon.max = Math.max(this.range.lon.max,latlon[1]);
-					circle = L.circle(latlon,{ radius: 500 });
-					circle.addTo(this.map);
-					// Create a circle marker
-					this.grid.push(L.rectangle(circle.getBounds(), {
-						weight: 0,
-						fillColor: '#f03',
-						fillOpacity: 0.5
-					}));
-					circle.removeFrom(this.map);
+					e = this.data[i][this.lookup['x']];
+					n = this.data[i][this.lookup['y']];
 
-					// Add the new circle to the map
-					this.grid[this.grid.length-1].addTo(this.map);
+					if(!isNaN(e) && !isNaN(n)){
+						latlon = NEtoLL([ e, n ]);
+						
+						this.range.lat.min = Math.min(this.range.lat.min,latlon[0]);
+						this.range.lat.max = Math.max(this.range.lat.max,latlon[0]);
+						this.range.lon.min = Math.min(this.range.lon.min,latlon[1]);
+						this.range.lon.max = Math.max(this.range.lon.max,latlon[1]);
+						circle = L.circle(latlon,{ radius: 500 });
+						circle.addTo(this.map);
+						// Create a circle marker
+						this.grid.push(L.rectangle(circle.getBounds(), {
+							weight: 0,
+							fillColor: '#f03',
+							fillOpacity: 0.5
+						}));
+						circle.removeFrom(this.map);
+
+						// Add the new circle to the map
+						this.grid[this.grid.length-1].addTo(this.map);
+					}
 				}
+				console.log(this)
+				this.map.fitBounds([[this.range.lat.min,this.range.lon.min],[this.range.lat.max,this.range.lon.max]])
+
+				// Now set the key to use for opacity and update
+				this.setKey(this.key);
+
+			},
+			"error": function(e){
+				console.error('Request for '+url+' failed',e);
 			}
-			
-			this.map.fitBounds([[this.range.lat.min,this.range.lon.min],[this.range.lat.max,this.range.lon.max]])
-
-			// Now set the key to use for opacity and update
-			this.setKey(this.key);
-
-		}).catch(error => {
-
-			console.error('Failed to load '+url);
-
 		});
+
 		return this;
 	}
 	
@@ -646,6 +639,109 @@
 		for(var i = 0; i < len; ++i) indices[i] = i;
 		return indices.sort(function (a, b){ return toSort[a] < toSort[b] ? -1 : toSort[a] > toSort[b] ? 1 : 0; });
 	}
+	
+	function ajax(url,attrs){
+		//=========================================================
+		// ajax(url,{'complete':function,'error':function,'dataType':'json'})
+		// complete: function - a function executed on completion
+		// error: function - a function executed on an error
+		// cache: break the cache
+		// dataType: json - will convert the text to JSON
+		//			  jsonp - will add a callback function and convert the results to JSON
+
+		if(typeof url!=="string") return false;
+		if(!attrs) attrs = {};
+		var cb = "",qs = "";
+		var oReq,urlbits;
+		// If part of the URL is query string we split that first
+		if(url.indexOf("?") > 0){
+			urlbits = url.split("?");
+			if(urlbits.length){
+				url = urlbits[0];
+				qs = urlbits[1];
+			}
+		}
+		if(attrs.dataType=="jsonp"){
+			cb = 'fn_'+(new Date()).getTime();
+			window[cb] = function(rsp){
+				if(typeof attrs.success==="function") attrs.success.call((attrs['this'] ? attrs['this'] : this), rsp, attrs);
+			};
+		}
+		if(typeof attrs.cache==="boolean" && !attrs.cache) qs += (qs ? '&':'')+(new Date()).valueOf();
+		if(cb) qs += (qs ? '&':'')+'callback='+cb;
+		if(attrs.data) qs += (qs ? '&':'')+attrs.data;
+
+		// Build the URL to query
+		if(attrs.method=="POST") attrs.url = url;
+		else attrs.url = url+(qs ? '?'+qs:'');
+
+		if(attrs.dataType=="jsonp"){
+			var script = document.createElement('script');
+			script.src = attrs.url;
+			document.body.appendChild(script);
+			return this;
+		}
+
+		// code for IE7+/Firefox/Chrome/Opera/Safari or for IE6/IE5
+		oReq = (window.XMLHttpRequest) ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+		oReq.addEventListener("load", window[cb] || complete);
+		oReq.addEventListener("error", error);
+		oReq.addEventListener("progress", progress);
+		var responseTypeAware = 'responseType' in oReq;
+		if(attrs.beforeSend) oReq = attrs.beforeSend.call((attrs['this'] ? attrs['this'] : this), oReq, attrs);
+		if(attrs.dataType=="script") oReq.overrideMimeType('text/javascript');
+
+		function complete(evt) {
+			attrs.header = oReq.getAllResponseHeaders();
+			var rsp;
+			if(oReq.status == 200 || oReq.status == 201 || oReq.status == 202) {
+				rsp = oReq.response;
+				if(oReq.responseType=="" || oReq.responseType=="text") rsp = oReq.responseText;
+				if(attrs.dataType=="json"){
+					try {
+						if(typeof rsp==="string") rsp = JSON.parse(rsp.replace(/[\n\r]/g,"\\n").replace(/^([^\(]+)\((.*)\)([^\)]*)$/,function(e,a,b,c){ return (a==cb) ? b:''; }).replace(/\\n/g,"\n"));
+					} catch(e){ error(e); }
+				}
+
+				// Parse out content in the appropriate callback
+				if(attrs.dataType=="script"){
+					var fileref=document.createElement('script');
+					fileref.setAttribute("type","text/javascript");
+					fileref.innerHTML = rsp;
+					document.head.appendChild(fileref);
+				}
+				attrs.statusText = 'success';
+				if(typeof attrs.success==="function") attrs.success.call((attrs['this'] ? attrs['this'] : this), rsp, attrs);
+			}else{
+				attrs.statusText = 'error';
+				error(evt);
+			}
+			if(typeof attrs.complete==="function") attrs.complete.call((attrs['this'] ? attrs['this'] : this), rsp, attrs);
+		}
+
+		function error(evt){
+			if(typeof attrs.error==="function") attrs.error.call((attrs['this'] ? attrs['this'] : this),evt,attrs);
+		}
+
+		function progress(evt){
+			if(typeof attrs.progress==="function") attrs.progress.call((attrs['this'] ? attrs['this'] : this),evt,attrs);
+		}
+
+		if(responseTypeAware && attrs.dataType){
+			try { oReq.responseType = attrs.dataType; }
+			catch(err){ error(err); }
+		}
+
+		try{ oReq.open((attrs.method||'GET'), attrs.url, true); }
+		catch(err){ error(err); }
+
+		if(attrs.method=="POST") oReq.setRequestHeader('Content-type','application/x-www-form-urlencoded');
+
+		try{ oReq.send((attrs.method=="POST" ? qs : null)); }
+		catch(err){ error(err); }
+
+		return this;
+	};
 
 	root.Colours = Colours;
 
