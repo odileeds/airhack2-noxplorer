@@ -256,7 +256,7 @@
 		w = [1];
 		el = document.getElementById('output');
 		// Find the distance (in metres) to each grid point
-		for(i = 0; i < this.grid.length; i++) d[i] = this.grid[i]._latlng.distanceTo(point);
+		for(i = 0; i < this.grid.length; i++) d[i] = this.grid[i].getBounds().getCenter().distanceTo(point);
 		// Get the indices of the nearest points
 		near = sortIndices(d);
 		
@@ -377,14 +377,16 @@
 					this.range.lat.max = Math.max(this.range.lat.max,latlon[0]);
 					this.range.lon.min = Math.min(this.range.lon.min,latlon[1]);
 					this.range.lon.max = Math.max(this.range.lon.max,latlon[1]);
-					
+					circle = L.circle(latlon,{ radius: 500 });
+					circle.addTo(this.map);
 					// Create a circle marker
-					this.grid.push(L.circle(latlon, {
+					this.grid.push(L.rectangle(circle.getBounds(), {
 						weight: 0,
 						fillColor: '#f03',
 						fillOpacity: 0.5,
 						radius: 500
 					}));
+					circle.removeFrom(this.map);
 
 					// Add the new circle to the map
 					this.grid[this.grid.length-1].addTo(this.map);
