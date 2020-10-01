@@ -115,6 +115,7 @@
 		this.typeahead.on('change',{'this':this.typeahead},function(e){
 			
 			var f = this.el.value.replace(/^([A-Z]{1,2}[0-9]+)\s?.*$/,function(m,p1){ return p1; });
+			f = f.toUpperCase();
 
 			if(f.length >=3 && !this.files[f]){
 				this.files[f] = [];
@@ -294,7 +295,9 @@
 		// Get colour
 		col = new Colour(this.colour.getColourFromScale(this.scale,values[this.key].v,this.range[this.key].min,this.range[this.key].max));
 		document.querySelector('.info').innerHTML = ''+this.keys[k].label+' at <span class="coords">'+point.lat.toFixed(5)+','+point.lng.toFixed(5)+'</span>: <span style="background-color:'+col.hex+';color:'+col.text+'" class="value">'+values[this.key].v.toFixed(3)+'</span>';
-		table = '<p>A summary of all the NOx contributions:</p>'
+		rows = [['Total NOx','','','Total_NOx_18'],['Motorway','Motorway_in_18','Motorway_out_18',''],['Trunk road','Trunk_A_Rd_in_18','Trunk_A_Rd_out_18']];
+
+		table = '<p>A summary of all the NOx contributions:</p>';
 		table += '<table>';
 		for(j = 0; j < this.keys.length; j++){
 			k = this.keys[j].value;
@@ -383,8 +386,7 @@
 					this.grid.push(L.rectangle(circle.getBounds(), {
 						weight: 0,
 						fillColor: '#f03',
-						fillOpacity: 0.5,
-						radius: 500
+						fillOpacity: 0.5
 					}));
 					circle.removeFrom(this.map);
 
