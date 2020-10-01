@@ -318,8 +318,8 @@
 
 		ajax(url,{
 			"this": this,
+			"dataType": "text/csv",
 			"success": function(text){
-				console.log('data',d);
 
 				var i,line,j,latlon,e,n,colname;
 				this.lookup = {};
@@ -392,7 +392,7 @@
 						this.grid[this.grid.length-1].addTo(this.map);
 					}
 				}
-				console.log(this)
+
 				this.map.fitBounds([[this.range.lat.min,this.range.lon.min],[this.range.lat.max,this.range.lon.max]])
 
 				// Now set the key to use for opacity and update
