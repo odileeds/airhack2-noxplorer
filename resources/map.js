@@ -302,7 +302,7 @@
 				k = rows[r][c];
 				if(typeof k==="string"){
 					if(k && this.lookup[k]){
-						col = new Colour(this.colour.getColourFromScale(this.scale,values[k].v,this.range[k].min,this.range[k].max));
+						col = new Colour(this.colour.getColourFromScale(this.scale,values[k].v,0,values['Total_NOx_18'].v));
 						table += '<td style="background-color:'+col.hex+';color:'+col.text+'"><span class="value">'+(k && this.lookup[k] ? values[k].v.toFixed(3) : '')+'</span></td>'
 					}else{
 						table += '<td>'+k+'</td>'					
