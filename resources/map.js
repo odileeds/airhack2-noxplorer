@@ -115,7 +115,7 @@
 		this.typeahead.on('change',{'this':this.typeahead},function(e){
 			
 			var f = this.el.value.replace(/^([A-Z]{1,2}[0-9]+)\s?.*$/,function(m,p1){ return p1; });
-			f = f.toUpperCase();
+			f = f.toUpperCase().replace(/\s.*/g,"");
 
 			if(f.length >=3 && !this.files[f]){
 				this.files[f] = [];
@@ -163,8 +163,8 @@
 			_obj.setKey(e.currentTarget.value);
 		});
 		datakeys = el.querySelectorAll('option');
-		this.keys = new Array(datakeys.length);
-		for(i = 0; i < datakeys.length; i++) this.keys[i] = {'value':datakeys[i].getAttribute('value'),'label':datakeys[i].innerHTML};
+		this.keys = {};//new Array(datakeys.length);
+		for(i = 0; i < datakeys.length; i++) this.keys[datakeys[i].getAttribute('value')] = {'label':datakeys[i].innerHTML};
 		el = document.getElementById('colours');
 		// Set the value to match the select drop-down
 		if(el.value) this.scale = el.value;
@@ -277,8 +277,7 @@
 		}
 
 		values = {};
-		for(j = 0; j < this.keys.length; j++){
-			k = this.keys[j].value;
+		for(k in this.keys){
 			if(!values[k]) values[k] = {'v':0,'t':0};
 			for(i = 0; i < w.length; i++){
 				values[k].v += w[i] * this.data[near[i]][this.lookup[k]];
@@ -288,22 +287,29 @@
 		}
 
 		keys = [];
-		k = 0;
-		for(j = 0; j < this.keys.length; j++){
-			if(this.keys[j].value==this.key) k = j;
-		}
+		k = this.key;
 		// Get colour
 		col = new Colour(this.colour.getColourFromScale(this.scale,values[this.key].v,this.range[this.key].min,this.range[this.key].max));
 		document.querySelector('.info').innerHTML = ''+this.keys[k].label+' at <span class="coords">'+point.lat.toFixed(5)+','+point.lng.toFixed(5)+'</span>: <span style="background-color:'+col.hex+';color:'+col.text+'" class="value">'+values[this.key].v.toFixed(3)+'</span>';
-		rows = [['Total NOx','','','Total_NOx_18'],['Motorway','Motorway_in_18','Motorway_out_18',''],['Trunk road','Trunk_A_Rd_in_18','Trunk_A_Rd_out_18']];
+		rows = [['Total NOx','','','Total_NOx_18'],['Motorway','Motorway_in_18','Motorway_out_18',''],['Trunk road','Trunk_A_Rd_in_18','Trunk_A_Rd_out_18',''],['Primary A-road','Primary_A_Rd_in_18','Primary_A_Rd_out_18',''],['Minor Road Cold Start','Minor_Rd+Cold_Start_in_18','Minor_Rd+Cold_Start_out_18',''],['Industry','Industry_in_18','Industry_out_18',''],['Domestic','Domestic_in_18','Domestic_out_18',''],['Aircraft','Aircraft_in_18','Aircraft_out_18',''],['Rail','Rail_in_18','Rail_out_18',''],['Other','Other_in_18','Other_out_18',''],['Point sources','','','Point_Sources_18'],['Rural','','','Rural_18']];
 
 		table = '<p>A summary of all the NOx contributions:</p>';
 		table += '<table>';
-		for(j = 0; j < this.keys.length; j++){
-			k = this.keys[j].value;
-			// Get colour
-			col = new Colour(this.colour.getColourFromScale(this.scale,values[k].v,this.range[k].min,this.range[k].max));
-			table += '<tr><td>'+this.keys[j].label+'</td><td style="background-color:'+col.hex+';color:'+col.text+'"><span class="value">'+values[k].v.toFixed(3)+'</span></td></tr>';
+		table += '<tr><td>Layer</td><td>Near</td><td>Remote</td><td>Total</td>';
+		for(r = 0; r < rows.length; r++){
+			table += '<tr>';
+			for(c = 0; c < rows[r].length; c++){
+				k = rows[r][c];
+				if(typeof k==="string"){
+					if(k && this.lookup[k]){
+						col = new Colour(this.colour.getColourFromScale(this.scale,values[k].v,this.range[k].min,this.range[k].max));
+						table += '<td style="background-color:'+col.hex+';color:'+col.text+'"><span class="value">'+(k && this.lookup[k] ? values[k].v.toFixed(3) : '')+'</span></td>'
+					}else{
+						table += '<td>'+k+'</td>'					
+					}
+				}else table += '<td></td>'
+			}
+			table += '</tr>';
 		}
 		table += '</table>';
 		
